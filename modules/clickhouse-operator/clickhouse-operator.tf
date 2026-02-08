@@ -3,6 +3,8 @@ locals {
   clickhouse_operator_values = {}
 }
 
+# This resource deploys the Altinity ClickHouse operator using the official Helm chart.
+# The operator is responsible for managing ClickHouse clusters in Kubernetes.
 resource "helm_release" "clickhouse_operator" {
   name       = var.release_name
   repository = var.chart_repository

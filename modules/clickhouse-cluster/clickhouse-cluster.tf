@@ -21,6 +21,8 @@ locals {
   }
 }
 
+# This resource deploys a ClickHouse cluster using the Altinity Helm chart.
+# It configures the number of shards, replicas, persistence, and enables the ClickHouse Keeper.
 resource "helm_release" "clickhouse_cluster" {
   name       = var.cluster_name
   repository = var.chart_repository

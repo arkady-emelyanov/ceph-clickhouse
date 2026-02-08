@@ -11,6 +11,8 @@ locals {
   }
 }
 
+# This resource deploys the Rook Ceph operator using the official Helm chart.
+# The operator is responsible for managing Ceph clusters in Kubernetes.
 resource "helm_release" "rook_operator" {
   name       = var.release_name
   repository = var.chart_repository

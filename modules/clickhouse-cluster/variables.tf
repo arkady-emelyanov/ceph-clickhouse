@@ -1,27 +1,27 @@
 variable "namespace" {
-  type = string
-  description = "Namespace to deploy cluster to"
+  type        = string
+  description = "The Kubernetes namespace where the ClickHouse cluster will be deployed."
 }
 
 variable "cluster_name" {
-  description = "Helm release name"
+  description = "The name of the ClickHouse cluster."
   type        = string
 }
 
 variable "chart_repository" {
-  description = "Helm chart repository URL (release channel)"
+  description = "The URL of the Helm chart repository for the ClickHouse cluster."
   type        = string
   default     = "https://helm.altinity.com/"
 }
 
 variable "chart_name" {
-  description = "Chart name"
+  description = "The name of the Helm chart for the ClickHouse cluster."
   type        = string
   default     = "clickhouse"
 }
 
 variable "chart_version" {
-  description = "Chart version"
+  description = "The version of the Helm chart for the ClickHouse cluster. If not specified, the latest version will be used."
   type        = string
   default     = ""
 }

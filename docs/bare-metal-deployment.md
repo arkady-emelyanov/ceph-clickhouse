@@ -8,8 +8,6 @@ The project is structured into two main parts:
 1.  **Operators**: Deploys the Rook/Ceph and ClickHouse operators.
 2.  **Clusters**: Deploys the Ceph and ClickHouse clusters.
 
-The infrastructure is managed by Terraform, and the ClickHouse cluster is deployed using a Helm chart.
-
 ## Prerequisites
 
 Before you begin, ensure you have the following:
@@ -35,30 +33,20 @@ The `storage` section in `modules/ceph-cluster/cluster.yaml` uses `deviceFilter`
     deviceFilter: ${device_filter}
 ```
 
-The `device_filter` variable is passed from the terraform configuration. In `terraform/10_clusters/ceph-cluster.tf`, you can see that the `device_filter` is not set. You need to set it to match the names of the devices you want to use for Ceph. For example, if your devices are named `sda`, `sdb`, `sdc`, you can set the `deviceFilter` to `^sd[a-z]`.
+The `device_filter` variable is passed from the Terraform configuration. In `terraform/10_clusters/ceph-cluster.tf`, you need to set the `device_filter` to match the names of the devices you want to use for Ceph. For example, if your devices are named `sda`, `sdb`, `sdc`, you can set the `deviceFilter` to `^sd[a-z]`.
 
 Alternatively, if you want to use all available devices on the nodes, you can set `useAllDevices: true` and remove the `deviceFilter`.
 
 **Important:** Make sure the devices you select for Ceph are not in use and do not contain any important data, as they will be formatted by Rook.
 
-You will need to update the `device_filter` value in `modules/ceph-cluster/variables.tf` or pass it as a variable in your terraform command. For example, in `terraform/10_clusters/variables.tf` you can add a default value:
-
-```terraform
-variable "device_filter" {
-  description = "A regex filter for the devices to be used by Ceph."
-  type        = string
-  default     = "^sd[a-z]"
-}
-```
-
-And in `terraform/10_clusters/ceph-cluster.tf` make sure the variable is passed to the module:
+You will need to update the `device_filter` value in `terraform/10_clusters/ceph-cluster.tf` to explicitly set it:
 ```terraform
 module "ceph_cluster" {
     source = "${path.module}/../../modules/ceph-cluster"
 
-    namespace = "rook-ceph"
-    cluster_name = "base"
-    device_filter = var.device_filter
+    namespace     = "rook-ceph"
+    cluster_name  = "base"
+    device_filter = "^vd[b-c]$" # Example: set this to your desired filter
 }
 ```
 
@@ -105,7 +93,3 @@ To scale the Ceph cluster, you can add new nodes with raw block devices to your 
 If you are using `deviceFilter`, you need to make sure the new devices match the filter.
 
 You can also add more disks to existing nodes. Rook will detect them and create new OSDs.
-
-## 5. Cleanup
-
-The cleanup process is the same as for the AKS deployment. You can use `terraform destroy` to remove the resources. After that, you might need to manually clean up the data on the host disks that were used by Ceph. Refer to the [Rook documentation](https://rook.io/docs/rook/latest/Storage-Configuration/ceph-teardown/) for details on how to clean up the disks.

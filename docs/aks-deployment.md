@@ -8,21 +8,18 @@ The project is structured into two main parts:
 1.  **Operators**: Deploys the Rook/Ceph and ClickHouse operators.
 2.  **Clusters**: Deploys the Ceph and ClickHouse clusters.
 
-The infrastructure is managed by Terraform, and the ClickHouse cluster is deployed using a Helm chart.
-
 ## Prerequisites
 
 Before you begin, ensure you have the following tools installed:
-*   [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-*   [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
-*   [Terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli)
-*   [Helm](https://helm.sh/docs/intro/install/)
+* [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+* [Terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli)
+* [Helm](https://helm.sh/docs/intro/install/)
 
-You also need an active Azure subscription.
 
 ## 1. Create an AKS Cluster
 
-First, you need to create an AKS cluster. We recommend using a cluster with at least 3 nodes of size `Standard_D4s_v3` to accommodate the Ceph and ClickHouse components.
+First, you need to create an AKS cluster. Cluster with at least 3 nodes of size `Standard_D4s_v3` to accommodate the Ceph and ClickHouse components is recommended.
 
 You can create an AKS cluster using the Azure CLI:
 
@@ -48,14 +45,42 @@ az aks create \
 az aks get-credentials --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME
 ```
 
+### 1.1 Configure Terraform with AKS Cluster
+
+In order to deploy Ceph/Clickhouse to AKS, provide Kubernetes API endpoint configuration to the automation.
+The configuration is defined in the `terraform/01_operators/terraform.tf` and `terraform/10_clusters/terraform.tf`.
+
+```
+# Query the AKS Cluster details
+data "azurerm_kubernetes_cluster" "aks_data" {
+  name                = azurerm_kubernetes_cluster.aks.name
+  resource_group_name = azurerm_kubernetes_cluster.aks.resource_group_name
+}
+
+# Configure Kubernetes provider
+provider "kubernetes" {
+  host                   = data.azurerm_kubernetes_cluster.aks_data.kube_config.0.host
+  client_certificate     = base64decode(data.azurerm_kubernetes_cluster.aks_data.kube_config.0.client_certificate)
+  client_key             = base64decode(data.azurerm_kubernetes_cluster.aks_data.kube_config.0.client_key)
+  cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.aks_data.kube_config.0.cluster_ca_certificate)
+}
+
+provider "helm" {
+  kubernetes {
+    host                   = data.azurerm_kubernetes_cluster.aks_data.kube_config.0.host
+    client_certificate     = base64decode(data.azurerm_kubernetes_cluster.aks_data.kube_config.0.client_certificate)
+    client_key             = base64decode(data.azurerm_kubernetes_cluster.aks_data.kube_config.0.client_key)
+    cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.aks_data.kube_config.0.cluster_ca_certificate)
+  }
+}
+```
+
 ## 2. Configure Storage for Ceph on AKS
 
-The default Ceph configuration in this repository is designed for bare-metal or VM deployments using `hostPath` and `deviceFilter`. For AKS, we need to use Azure Managed Disks. Rook can provision OSDs on top of PVCs using `storageClassDeviceSets`.
+The default Ceph configuration in this repository is designed for bare-metal or VM deployments using `hostPath` and `deviceFilter`. For AKS, we need to use Azure Managed Disks. Rook can provision OSDs on top of PVCs using [storageClassDeviceSets](https://rook.io/docs/rook/v1.9/CRDs/ceph-cluster-crd/?h=devicefilter#pvc-based-cluster)
 
 You will need to modify the `modules/ceph-cluster/cluster.yaml` file to use `storageClassDeviceSets`.
-
 First, create a `StorageClass` that uses Azure Managed Disks. You can use the default `managed-premium` storage class provided by Azure, or create a new one.
-
 Then, update the `storage` section in `modules/ceph-cluster/cluster.yaml` to look like this:
 
 ```yaml
@@ -77,8 +102,9 @@ Then, update the `storage` section in `modules/ceph-cluster/cluster.yaml` to loo
           accessModes:
             - ReadWriteOnce
 ```
+**Note on `device_filter`**: In the AKS setup, the `device_filter` variable (which might be present in `cluster.yaml` from other deployment types) is not used. Ensure it is removed or commented out from `cluster.yaml` when using `storageClassDeviceSets`.
 
-This configuration will create 3 OSDs, each with a 1024Gi managed disk. The `count` should be equal to the number of nodes in your AKS cluster.
+This configuration will create 3 OSDs, each with a 1024Gi managed disk (the minimum disk to be considered by OSD is 5000MB). The `count` should be equal to the number of nodes in your AKS cluster.
 
 **Note:** This change needs to be applied to the `cluster.yaml` file before running Terraform. The `device_filter` variable in `terraform/10_clusters/ceph-cluster.tf` is not used in this AKS setup.
 
@@ -130,32 +156,40 @@ ceph osd status
 
 ## 5. Connect to ClickHouse
 
-To connect to the ClickHouse cluster, you can use the `clickhouse-client`. First, get the service name of the ClickHouse cluster:
+To connect to the ClickHouse cluster, you can use the `DBeaver`. To get the credentials, query the clickhouse credentials secret
+(please note, by default, default user is passwordless).
 
 ```bash
-kubectl get services -n clickhouse-system
+kubectl -n clickhouse-system get secret clickhouse-credentials -o jsonpath="{.data.user}" | base64 --decode
+kubectl -n clickhouse-system get secret clickhouse-credentials -o jsonpath="{.data.password}" | base64 --decode
 ```
 
-You should see a service named `clickhouse-clickhouse`. You can then port-forward to this service to connect from your local machine:
+Port-forward to ClickHouse service to connect from your local machine:
 
 ```bash
-kubectl port-forward service/clickhouse-clickhouse 9000:9000 -n clickhouse-system &
-clickhouse-client --host 127.0.0.1
+kubectl port-forward service/clickhouse-clickhouse 8123:8123 -n clickhouse-system
 ```
 
-## 6. Access Ceph Object Storage
+Use `localhost` as ClickHouse host and `8123` as port number.
 
-The Ceph cluster is configured with an S3-compatible object store. To access it, you need to get the access key and secret key from the `rook-ceph-rgw-base-key` secret in the `rook-ceph` namespace.
+
+## 6. Access S3 Object Storage
+
+The Ceph cluster is configured with an S3-compatible object store. To access it, you need to get the access key and secret key from the `warehouse` secret in the `rook-ceph` namespace. For connection details use connection parameters from `warehouse` ConfigMap.
+
+Access keys (access and secret keys):
 
 ```bash
-kubectl -n rook-ceph get secret rook-ceph-rgw-base-key -o jsonpath="{.data.access_key}" | base64 --decode
-kubectl -n rook-ceph get secret rook-ceph-rgw-base-key -o jsonpath="{.data.secret_key}" | base64 --decode
+kubectl -n rook-ceph get secret warehouse -o jsonpath="{.data.AWS_ACCESS_KEY_ID}" | base64 --decode
+kubectl -n rook-ceph get secret warehouse -o jsonpath="{.data.AWS_SECRET_ACCESS_KEY}" | base64 --decode
 ```
 
-You also need the S3 endpoint. You can get it by looking at the `rook-ceph-rgw-base` service in the `rook-ceph` namespace:
+Connection details (host, port, and bucket name):
 
 ```bash
-kubectl get service rook-ceph-rgw-base -n rook-ceph
+kubectl -n rook-ceph get configmap warehouse -o jsonpath="{.data.BUCKET_HOST}"
+kubectl -n rook-ceph get configmap warehouse -o jsonpath="{.data.BUCKET_PORT}"
+kubectl -n rook-ceph get configmap warehouse -o jsonpath="{.data.BUCKET_NAME}"
 ```
 
 You can then use an S3 client like `s3cmd` or the AWS CLI to connect to the object store.
@@ -182,31 +216,9 @@ Increase the `count` in the `storageClassDeviceSets`.
 **Scale-in:**
 Decreasing the `count` is not recommended as it can lead to data loss. You should first decommission the OSDs properly using the Ceph toolbox.
 
-## 8. Cleanup
-
-To remove all the resources created in this guide, you can run `terraform destroy` in the `terraform/10_clusters` and `terraform/01_operators` directories.
-
-```bash
-# Destroy the clusters
-cd terraform/10_clusters
-terraform destroy
-
-# Destroy the operators
-cd ../01_operators
-terraform destroy
-```
-
-Finally, you can delete the AKS cluster and the resource group:
-
-```bash
-az aks delete --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME
-az group delete --name $RESOURCE_GROUP
-```
-
-## 9. Minikube vs AKS
+## 8. Minikube vs AKS
 
 This repository was originally designed for a Minikube environment. The main differences when deploying to AKS are:
 
-*   **Storage**: Minikube uses `hostPath` and local disks, while AKS uses Azure Managed Disks. The `cluster.yaml` file needs to be modified to use `storageClassDeviceSets` instead of `deviceFilter`.
+*   **Storage**: Minikube/On-premises uses `hostPath` and local disks, while AKS uses Azure Disks. The `cluster.yaml` file needs to be modified to use `storageClassDeviceSets` instead of `deviceFilter`.
 *   **Scripts**: The shell scripts in the root of the repository (`01_create-disks.sh`, `10_create-minikube.sh`, `20_mount-disks.sh`) are specific to the Minikube setup and are not used for the AKS deployment.
-*   **Networking**: In AKS, services of type `LoadBalancer` will automatically provision an Azure Load Balancer. This might be relevant for exposing the Ceph RGW endpoint or the ClickHouse service.
