@@ -1,0 +1,9 @@
+---
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: ${bucket_name}
+  namespace: ${bucket_namespace}
+spec:
+  bucketName: ${bucket_name}
+  storageClassName: ${storage_class_name}

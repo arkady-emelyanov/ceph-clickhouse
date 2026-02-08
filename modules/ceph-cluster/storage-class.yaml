@@ -1,0 +1,10 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ${storage_class_name}
+provisioner: ${cluster_namespace}.ceph.rook.io/bucket
+reclaimPolicy: Retain
+parameters:
+  objectStoreName: ${cluster_name}
+  objectStoreNamespace: ${cluster_namespace}
