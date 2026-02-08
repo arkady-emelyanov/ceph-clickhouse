@@ -23,5 +23,5 @@ variable "chart_name" {
 variable "chart_version" {
   description = "The version of the Helm chart for the ClickHouse cluster. If not specified, the latest version will be used."
   type        = string
-  default     = ""
+  default     = "0.3.8"
 }

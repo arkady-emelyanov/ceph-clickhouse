@@ -27,7 +27,7 @@ resource "helm_release" "clickhouse_cluster" {
   name       = var.cluster_name
   repository = var.chart_repository
   chart      = var.chart_name
-  #version    = var.chart_version
+  version    = var.chart_version
 
   namespace  = var.namespace
   create_namespace = false
