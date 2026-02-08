@@ -21,30 +21,6 @@ Before you begin, ensure you have the following tools installed:
 
 First, you need to create an AKS cluster. Cluster with at least 3 nodes of size `Standard_D4s_v3` to accommodate the Ceph and ClickHouse components is recommended.
 
-You can create an AKS cluster using the Azure CLI:
-
-```bash
-# Set your variables
-RESOURCE_GROUP="my-aks-rg"
-CLUSTER_NAME="my-aks-cluster"
-LOCATION="eastus"
-
-# Create a resource group
-az group create --name $RESOURCE_GROUP --location $LOCATION
-
-# Create the AKS cluster
-az aks create \
-    --resource-group $RESOURCE_GROUP \
-    --name $CLUSTER_NAME \
-    --node-count 3 \
-    --node-vm-size Standard_D4s_v3 \
-    --enable-managed-identity \
-    --generate-ssh-keys
-
-# Get the credentials for your new cluster
-az aks get-credentials --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME
-```
-
 ### 1.1 Configure Terraform with AKS Cluster
 
 In order to deploy Ceph/Clickhouse to AKS, provide Kubernetes API endpoint configuration to the automation.
@@ -138,9 +114,9 @@ This will deploy the Ceph and ClickHouse clusters.
 
 A Ceph toolbox pod is deployed with the Ceph cluster. You can use it to run Ceph commands.
 
-First, find the toolbox pod name:
+First, find the toolbox pod name (toolbox uses name of the cluster as app name, in this case `base`):
 ```bash
-kubectl get pods -n rook-ceph -l app=rook-ceph-tools
+kubectl get pods -n rook-ceph -l app=base
 ```
 
 Then, exec into the toolbox pod:
@@ -152,6 +128,35 @@ Now you can run Ceph commands, for example:
 ```bash
 ceph status
 ceph osd status
+```
+
+Sample output:
+
+```
+$ kubectl -n rook-ceph exec -it base-5dd66fd5f4-72x28 -- bash
+bash-5.1$ ceph status
+  cluster:
+    id:     88c73e47-5e63-4823-8852-8579db12e74d
+    health: HEALTH_OK
+ 
+  services:
+    mon: 3 daemons, quorum a,b,c (age 107m)
+    mgr: a(active, since 106m), standbys: b
+    osd: 3 osds: 3 up (since 9h), 3 in (since 9h)
+    rgw: 1 daemon active (1 hosts, 1 zones)
+ 
+  data:
+    pools:   9 pools, 185 pgs
+    objects: 386 objects, 483 KiB
+    usage:   198 MiB used, 17 GiB / 18 GiB avail
+    pgs:     185 active+clean
+ 
+bash-5.1$ ceph osd status
+ID  HOST           USED  AVAIL  WR OPS  WR DATA  RD OPS  RD DATA  STATE      
+ 0  minikube      60.0M  5941M      0        0       0        0   exists,up  
+ 1  minikube-m02  77.6M  5923M      0        0       0        0   exists,up  
+ 2  minikube-m03  60.0M  5941M      0        0       1        0   exists,up  
+
 ```
 
 ## 5. Connect to ClickHouse
@@ -220,5 +225,5 @@ Decreasing the `count` is not recommended as it can lead to data loss. You shoul
 
 This repository was originally designed for a Minikube environment. The main differences when deploying to AKS are:
 
-*   **Storage**: Minikube/On-premises uses `hostPath` and local disks, while AKS uses Azure Disks. The `cluster.yaml` file needs to be modified to use `storageClassDeviceSets` instead of `deviceFilter`.
-*   **Scripts**: The shell scripts in the root of the repository (`01_create-disks.sh`, `10_create-minikube.sh`, `20_mount-disks.sh`) are specific to the Minikube setup and are not used for the AKS deployment.
+* **Storage**: Minikube/On-premises uses `hostPath` and local disks, while AKS uses Azure Disks. The `cluster.yaml` file needs to be modified to use `storageClassDeviceSets` instead of `deviceFilter`.
+* **Scripts**: The shell scripts in the root of the repository (`01_create-disks.sh`, `10_create-minikube.sh`, `20_mount-disks.sh`) are specific to the Minikube setup and are not used for the AKS deployment.
