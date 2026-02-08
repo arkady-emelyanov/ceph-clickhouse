@@ -12,6 +12,5 @@ variable "namespace" {
 
 variable "device_filter" {
   type = string
-  default = "^vd[b-c]$"
   description = "Block device filter"
 }
