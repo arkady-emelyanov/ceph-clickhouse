@@ -224,20 +224,14 @@ You can then use an S3 client like `s3cmd` or the AWS CLI to connect to the obje
 To scale the ClickHouse cluster, you can modify the `shardsCount` and `replicasCount` values in `modules/clickhouse-cluster/clickhouse-cluster.tf` and re-run `terraform apply` in the `terraform/10_clusters` directory.
 
 **Scale-out:**
-Increase the `shardsCount` to add more shards to the cluster.
-
-**Scale-in:**
-Decrease the `shardsCount`. Note that you need to manually move the data from the shards that are being removed.
+Increase the `shardsCount` to add more shards to the cluster. Operation does not rebalance data, only new data will benefit from scaling. See [ClickHouse recommendations](https://clickhouse.com/docs/guides/sre/scaling-clusters) for more details.
 
 ### 7.2. Scaling Ceph
 
-To scale the Ceph cluster, you can increase the `count` in the `storageClassDeviceSets` in `modules/ceph-cluster/cluster.yaml` and re-run `terraform apply` in the `terraform/10_clusters` directory. This will provision new OSDs.
+To scale the Ceph cluster, you can increase the `count` in the `storageClassDeviceSets` in `modules/ceph-cluster/cluster.yaml` and re-run `terraform apply` in the `terraform/10_clusters` directory. This will provision new OSDs. Ceph will automatically rebalance cluster. See [Ceph Balancer documentation](https://cephdocs.readthedocs.io/en/stable/rados/operations/balancer/) for more details.
 
 **Scale-out:**
 Increase the `count` in the `storageClassDeviceSets`.
-
-**Scale-in:**
-Decreasing the `count` is not recommended as it can lead to data loss. You should first decommission the OSDs properly using the Ceph toolbox.
 
 ## 8. Minikube vs AKS
 
