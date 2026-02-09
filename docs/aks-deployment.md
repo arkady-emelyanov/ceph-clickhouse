@@ -224,7 +224,7 @@ You can then use an S3 client like `s3cmd` or the AWS CLI to connect to the obje
 
 ### 7.1. Scaling ClickHouse
 
-To scale the ClickHouse cluster, you can modify the `shardsCount` and `replicasCount` values in `modules/clickhouse-cluster/clickhouse-cluster.tf` and re-run `terraform apply` in the `terraform/10_clusters` directory.
+To scale the ClickHouse cluster, you can modify the `shardsCount` and `replicasCount` values in `terraform/10_clusters/clickhouse_cluster.tf` and re-run `terraform apply` in the `terraform/10_clusters` directory.
 
 Increasing `shardsCount` adds more shards to the cluster. Operation does not rebalance data, only new data will benefit from scaling. See [ClickHouse recommendations](https://clickhouse.com/docs/guides/sre/scaling-clusters) about data rebalance strategy.
 
