@@ -6,8 +6,8 @@ This project provides Terraform and Helm configurations to deploy a Ceph and Cli
 
 This repository contains instructions for deploying the project on different environments:
 
+* [Deploying on Azure Kubernetes Service (AKS)](docs/aks-deployment.md) foundation guide.
 * [Deploying on Minikube](docs/minikube-deployment.md)
-* [Deploying on Azure Kubernetes Service (AKS)](docs/aks-deployment.md)
 * [Deploying on bare-metal Kubernetes](docs/bare-metal-deployment.md)
 
 Please refer to the respective guides for detailed instructions.
