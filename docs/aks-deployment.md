@@ -19,7 +19,7 @@ Before you begin, ensure you have the following tools installed:
 
 ## 1. Create an AKS Cluster
 
-First, you need to create an AKS cluster. Cluster with at least 3 nodes of size `Standard_D4s_v3` to accommodate the Ceph and ClickHouse components is recommended.
+First, you need to create an AKS cluster. Cluster with at least 3 nodes to accommodate the Ceph and ClickHouse components is recommended.
 
 ### 1.1 Configure Terraform with AKS Cluster
 
