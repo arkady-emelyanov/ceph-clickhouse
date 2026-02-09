@@ -2,16 +2,16 @@ locals {
   # https://github.com/Altinity/helm-charts/tree/main/charts/clickhouse
   clickhouse_cluster_values = {    
     operator = {
-      # operator is installed explicitly
+      # operator is installed separately, do not install embedded operator.
       enabled = false
     }
 
     clickhouse = {
-      shardsCount = 3
-      replicasCount = 1
+      shardsCount = var.shards_count
+      replicasCount = var.replicas_count
 
       persistence = {
-        size = "10Gi"
+        size = var.disk_size
       }
     }
 

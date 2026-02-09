@@ -1,5 +1,5 @@
 locals {
-  # see: https://github.com/rook/rook/blob/master/deploy/charts/rook-ceph/values.yaml
+  # see: https://rook.io/docs/rook/latest-release/Getting-Started/quickstart/#deploy-the-rook-operator
   rook_values = {
     operatorNamespace = var.namespace
     operatorLogLevel = "INFO"

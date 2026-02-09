@@ -6,4 +6,8 @@ module "clickhouse_cluster" {
 
     namespace = "clickhouse-system"
     cluster_name = "clickhouse"
+
+    disk_size = "500Gi"
+    shards_count = 3
+    replicas_count = 1
 }

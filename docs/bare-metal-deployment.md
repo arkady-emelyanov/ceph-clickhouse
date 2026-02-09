@@ -2,6 +2,8 @@
 
 This guide provides instructions for deploying a Ceph and ClickHouse cluster on a bare-metal Kubernetes cluster. This setup can be managed by Azure Arc for a hybrid cloud solution.
 
+The base guide related to the Operators itself is provided in [AKS deployment guide](./aks-deployment.md).
+
 ## Overview
 
 The project is structured into two main parts:

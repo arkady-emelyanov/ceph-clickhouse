@@ -2,6 +2,8 @@
 
 This guide provides instructions for deploying the Ceph and ClickHouse cluster on a local Minikube environment.
 
+The base guide related to the Operators itself is provided in [AKS deployment guide](./aks-deployment.md).
+
 ## Prerequisites
 
 * Minikube installed and configured.

@@ -25,3 +25,21 @@ variable "chart_version" {
   type        = string
   default     = "0.3.8"
 }
+
+variable "shards_count" {
+  type        = number
+  default     = 3
+  description = "The number of shards to provision"
+}
+
+variable "replicas_count" {
+  type        = number
+  default     = 1
+  description = "The number of replicas to provision"
+}
+
+variable "disk_size" {
+  type        = string
+  default     = "10Gi"
+  description = "Disk size to provision for each node"
+}

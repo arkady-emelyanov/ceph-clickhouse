@@ -1,5 +1,5 @@
 locals {
-  # https://github.com/Altinity/helm-charts/tree/main/charts/clickhouse
+  # https://docs.altinity.com/altinitykubernetesoperator/kubernetesoperatorguide/clickhouseoperatorsettings/
   clickhouse_operator_values = {}
 }
 

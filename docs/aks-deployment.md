@@ -88,6 +88,15 @@ This configuration will create 3 OSDs, each with a 1024Gi managed disk (the mini
 
 The Terraform configuration is split into two layers: `01_operators` and `10_clusters`.
 
+Configuration:
+
+* [ClickHouse Operator](https://docs.altinity.com/altinitykubernetesoperator/kubernetesoperatorguide/clickhouseoperatorsettings/)
+* [ClickHouse cluster](https://docs.altinity.com/altinitykubernetesoperator/kubernetesoperatorguide/clustersettings/)
+* [Rook Operator](https://rook.io/docs/rook/latest-release/Getting-Started/quickstart/#deploy-the-rook-operator)
+* [Ceph ObjectStorage](https://rook.io/docs/rook/latest-release/Storage-Configuration/Object-Storage-RGW/object-storage/#configure-an-object-store)
+* [Ceph BucketClaim](https://rook.io/docs/rook/latest-release/Storage-Configuration/Object-Storage-RGW/ceph-object-bucket-claim/)
+
+
 ### 3.1. Deploy the Operators
 
 Navigate to the `terraform/01_operators` directory and run the following commands:
@@ -98,6 +107,7 @@ terraform apply
 ```
 
 This will deploy the Rook/Ceph and ClickHouse operators.
+
 
 ### 3.2. Deploy the Clusters
 
@@ -162,7 +172,7 @@ ID  HOST           USED  AVAIL  WR OPS  WR DATA  RD OPS  RD DATA  STATE
 ## 5. Connect to ClickHouse
 
 To connect to the ClickHouse cluster, you can use the `DBeaver`. To get the credentials, query the clickhouse credentials secret
-(please note, by default, default user is passwordless).
+(please note, default user has no password by default).
 
 ```bash
 kubectl -n clickhouse-system get secret clickhouse-credentials -o jsonpath="{.data.user}" | base64 --decode
