@@ -17,7 +17,7 @@ Repository describes infrastructure which is deployed to multi-node minikube clu
 ## Your task
 Your main task is to generate and maintain the documentation for this project in the `docs/` directory. This includes:
 - Creating and updating a `README.md` file that serves as an entry point to the documentation.
-- Generating detailed deployment guides for different environments (e.g., AKS, Bare-metal).
+- Generating detailed deployment guides for different environments (e.g., AKS, Bare-metal, and Minikube).
 - Analyzing the Terraform and Helm configurations to provide accurate and up-to-date information.
 - Including practical examples, such as connection strings, scaling instructions, and cleanup procedures.
 
