@@ -13,12 +13,12 @@ The project is structured into two main parts:
 ## Prerequisites
 
 Before you begin, ensure you have the following:
-*   A running Kubernetes cluster on bare-metal servers.
-*   At least 3 nodes in the cluster for a production setup.
-*   Raw block devices available on the nodes for Ceph storage.
-*   [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) installed and configured to connect to your cluster.
-*   [Terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli) installed.
-*   [Helm](https://helm.sh/docs/intro/install/) installed.
+* A running Kubernetes cluster on bare-metal servers.
+* At least 3 nodes in the cluster for a production setup.
+* Raw block devices available on the nodes for Ceph storage.
+* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) installed and configured to connect to your cluster.
+* [Terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli) installed.
+* [Helm](https://helm.sh/docs/intro/install/) installed.
 
 For managing your bare-metal cluster with Azure, you can connect it to [Azure Arc](https://docs.microsoft.com/en-us/azure/azure-arc/kubernetes/overview).
 
