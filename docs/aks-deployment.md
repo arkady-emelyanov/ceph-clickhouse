@@ -179,6 +179,9 @@ ID  HOST           USED  AVAIL  WR OPS  WR DATA  RD OPS  RD DATA  STATE
 
 ## 5. Connect to ClickHouse
 
+**Note:** ClickHouse operator uses [ClickHouse Keeper](https://clickhouse.com/docs/guides/sre/keeper/clickhouse-keeper) implementation
+instead of Apache ZooKeeper.
+
 To connect to the ClickHouse cluster, you can use the `DBeaver`. To get the credentials, query the clickhouse credentials secret
 (please note, default user has no password by default).
 
@@ -223,19 +226,10 @@ You can then use an S3 client like `s3cmd` or the AWS CLI to connect to the obje
 
 To scale the ClickHouse cluster, you can modify the `shardsCount` and `replicasCount` values in `modules/clickhouse-cluster/clickhouse-cluster.tf` and re-run `terraform apply` in the `terraform/10_clusters` directory.
 
-**Scale-out:**
-Increase the `shardsCount` to add more shards to the cluster. Operation does not rebalance data, only new data will benefit from scaling. See [ClickHouse recommendations](https://clickhouse.com/docs/guides/sre/scaling-clusters) for more details.
+Increasing `shardsCount` adds more shards to the cluster. Operation does not rebalance data, only new data will benefit from scaling. See [ClickHouse recommendations](https://clickhouse.com/docs/guides/sre/scaling-clusters) about data rebalance strategy.
 
 ### 7.2. Scaling Ceph
 
 To scale the Ceph cluster, you can increase the `count` in the `storageClassDeviceSets` in `modules/ceph-cluster/cluster.yaml` and re-run `terraform apply` in the `terraform/10_clusters` directory. This will provision new OSDs. Ceph will automatically rebalance cluster. See [Ceph Balancer documentation](https://cephdocs.readthedocs.io/en/stable/rados/operations/balancer/) for more details.
 
-**Scale-out:**
-Increase the `count` in the `storageClassDeviceSets`.
-
-## 8. Minikube vs AKS
-
-This repository was originally designed for a Minikube environment. The main differences when deploying to AKS are:
-
-* **Storage**: Minikube/On-premises uses `hostPath` and local disks, while AKS uses Azure Disks. The `cluster.yaml` file needs to be modified to use `storageClassDeviceSets` instead of `deviceFilter`.
-* **Scripts**: The shell scripts in the root of the repository (`01_create-disks.sh`, `10_create-minikube.sh`, `20_mount-disks.sh`) are specific to the Minikube setup and are not used for the AKS deployment.
+To add new OSD node to cluster increase `count` in the `storageClassDeviceSets` section.
