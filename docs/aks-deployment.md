@@ -86,9 +86,14 @@ Then, update the `storage` section in `modules/ceph-cluster/cluster.yaml` to loo
           accessModes:
             - ReadWriteOnce
 ```
-**Note on `device_filter`**: In the AKS setup, the `device_filter` variable (which might be present in `cluster.yaml` from other deployment types) is not used. Ensure it is removed or commented out from `cluster.yaml` when using `storageClassDeviceSets`.
-
 This configuration will create 3 OSDs, each with a 1024Gi managed disk (the minimum disk to be considered by OSD is 5000MB). The `count` should be equal to the number of nodes in your AKS cluster.
+
+**Note on `device_filter`**: In the AKS setup, the `device_filter` variable (which is present in `cluster.yaml` to support other deployment types) is not used. Ensure it is removed or commented out from `cluster.yaml` when using `storageClassDeviceSets`:
+
+```yaml
+  storage:
+    deviceFilter: ${device_filter}
+```
 
 **Note:** This change needs to be applied to the `cluster.yaml` file before running Terraform. The `device_filter` variable in `terraform/10_clusters/ceph-cluster.tf` is not used in this AKS setup.
 
